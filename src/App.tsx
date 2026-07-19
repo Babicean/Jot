@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LibraryShelf, Note } from "../src/types";
 import { useNotes } from "./hooks/useNotes";
 import { useToast } from "./hooks/useToast";
+import { watchIncomingShares } from "./lib/shareTarget";
 import type { LibraryFilter } from "./lib/notes";
 import StreamScreen from "./components/StreamScreen";
 import CaptureBar, { type CaptureBarHandle } from "./components/CaptureBar";
@@ -91,6 +92,30 @@ export default function App() {
     // Run once at boot on purpose; toggling the setting shouldn't refocus.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Shares from other apps and the "new jot" shortcut land in the capture
+  // bar. "" means just focus (the shortcut); text means prefill it.
+  const [pendingShare, setPendingShare] = useState<string | null>(null);
+  useEffect(
+    () =>
+      watchIncomingShares(
+        (text) => {
+          setTab("jot");
+          setPendingShare(text);
+        },
+        () => {
+          setTab("jot");
+          setPendingShare("");
+        },
+      ),
+    [],
+  );
+  useEffect(() => {
+    if (pendingShare === null || tab !== "jot") return;
+    if (pendingShare === "") captureRef.current?.focus();
+    else captureRef.current?.prefill(pendingShare);
+    setPendingShare(null);
+  }, [pendingShare, tab]);
 
   const removeWithUndo = (id: string) => {
     const deleted = deleteNote(id);

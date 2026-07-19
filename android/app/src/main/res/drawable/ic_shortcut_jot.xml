@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The jot mark on an azure disc, for the launcher shortcut. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path
+        android:fillColor="#2E6BE6"
+        android:pathData="M256,16 A240,240 0 1,1 255.9,16 Z" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="47"
+        android:strokeLineCap="round"
+        android:pathData="M162,372 C238,346 306,262 338,168" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M364,118 m-26,0 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0" />
+</vector>

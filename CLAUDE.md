@@ -161,7 +161,19 @@ router, no state library, no backend SDK.
   `pkill` exits 144 (run it in its own command); download artifacts
   vanish on context close (`download.saveAs` first).
 
-## Current state — v0.2.1 (code 5)
+## Current state — v0.2.2 (code 6)
+
+v0.2.2: share-into-Jot + the "new jot" launcher shortcut. Android side:
+a tiny custom Capacitor plugin (`ShareTargetPlugin.java`, registered in
+MainActivity) captures ACTION_SEND text and the shortcut's custom
+action, on cold start (load()) and warm (handleOnNewIntent →
+shareReceived event); manifest gained the SEND intent-filter, the
+shortcut intent-filter, and `res/xml/shortcuts.xml` (icon:
+`drawable/ic_shortcut_jot.xml`). Web side: `lib/shareTarget.ts` also
+reads PWA share_target query params (manifest), cleans the URL, and
+prefills the capture bar via `CaptureBarHandle.prefill` — shares NEVER
+auto-send. The native path can only be runtime-tested on the phone;
+CI compiles it, E2E covers the query-param path.
 
 v0.2.1: checklists. The reserved `checklist`/`ticked` fields went live:
 the note editor gained a Checklist switch; on, the textarea becomes a

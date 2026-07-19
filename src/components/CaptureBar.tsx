@@ -13,6 +13,8 @@ interface Props {
 
 export interface CaptureBarHandle {
   focus: () => void;
+  /** Drop shared text into the input, ready to send. */
+  prefill: (text: string) => void;
 }
 
 /**
@@ -30,6 +32,20 @@ const CaptureBar = forwardRef<CaptureBarHandle, Props>(function CaptureBar(
 
   useImperativeHandle(ref, () => ({
     focus: () => inputRef.current?.focus({ preventScroll: true }),
+    prefill: (incoming: string) => {
+      setText((prev) =>
+        prev.trim() === ""
+          ? incoming
+          : `${prev.replace(/\s+$/, "")}\n${incoming}`,
+      );
+      requestAnimationFrame(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        el.style.height = "auto";
+        el.style.height = `${el.scrollHeight}px`;
+        el.focus({ preventScroll: true });
+      });
+    },
   }));
 
   const send = () => {

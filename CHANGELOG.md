@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.2 — code 6 — 2026-07-19
+
+Capture without opening the app first.
+
+- Share into Jot: Jot now appears in Android's share sheet for text
+  and links. Shared text lands in the capture bar, ready to send; it
+  never auto-sends. Works while the app is closed or already open.
+- New jot shortcut: long-press the app icon for "new jot", which opens
+  straight into typing even with keyboard ready turned off.
+- The PWA registers as a share target too, on browsers that support it.
+
 ## 0.2.1 — code 5 — 2026-07-19
 
 Lists that tick.

@@ -4,4 +4,5 @@
     <string name="title_activity_main">Jot</string>
     <string name="package_name">com.babicean.jot</string>
     <string name="custom_url_scheme">com.babicean.jot</string>
+    <string name="shortcut_new_jot">new jot</string>
 </resources>

@@ -453,6 +453,34 @@ await scenario("library: + New note creates on the picked shelf", async () => {
   await ctx.close();
 });
 
+// ------------------------------------------------------------ share into Jot
+await scenario("share: a shared link prefills the capture bar, once", async () => {
+  const { ctx, page } = await freshPage();
+  await page.goto(
+    "http://localhost:4173/?title=Example+Page&text=call+the+plumber&url=https%3A%2F%2Fexample.com%2Fx",
+  );
+  await page.waitForSelector(".wordmark");
+  const value = await page.getByLabel("Jot something").inputValue();
+  expect(
+    value === "call the plumber https://example.com/x",
+    `unexpected prefill: ${JSON.stringify(value)}`,
+  );
+  // The share params are consumed from the URL, so a reload is clean.
+  expect(
+    (await page.evaluate(() => window.location.search)) === "",
+    "share params should be cleaned from the URL",
+  );
+  await page.getByRole("button", { name: "Send jot" }).click();
+  await expectText(page, ".jot-text", /call the plumber/);
+  await page.reload();
+  await page.waitForSelector(".wordmark");
+  expect(
+    (await page.getByLabel("Jot something").inputValue()) === "",
+    "reload must not re-prefill",
+  );
+  await ctx.close();
+});
+
 // --------------------------------------------------------------- checklists
 await scenario("checklist: tick, sink, N of M, add item, persist", async () => {
   const seed = [

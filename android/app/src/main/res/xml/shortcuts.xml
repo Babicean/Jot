@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_jot"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_jot"
+        android:shortcutShortLabel="@string/shortcut_new_jot"
+        android:shortcutLongLabel="@string/shortcut_new_jot">
+        <intent
+            android:action="com.babicean.jot.NEW_JOT"
+            android:targetPackage="com.babicean.jot"
+            android:targetClass="com.babicean.jot.MainActivity" />
+    </shortcut>
+</shortcuts>
