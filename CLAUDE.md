@@ -162,7 +162,16 @@ router, no state library, no backend SDK.
   `pkill` exits 144 (run it in its own command); download artifacts
   vanish on context close (`download.saveAs` first).
 
-## Current state — v0.1.1 (code 2)
+## Current state — v0.1.2 (code 3)
+
+v0.1.2: owner-requested Trash. Deletes (manual only) set `deletedAt`
+on the record instead of removing it; everything derived (stream,
+Library, People matching) filters `deletedAt === null`; the sweep also
+purges Trash entries older than 30 days (`TRASH_RETENTION_MS`). The
+Trash sheet opens from a quiet link at the foot of the Library, shown
+only when occupied. Expired disappearing jots still bypass the Trash —
+the no-graveyard rule holds for them. `deletedAt` is tolerated as
+missing on 0.1.x records and backups (`normalizeNote`).
 
 v0.1.1: the edit jot sheet gained a Keep row (Notes/Ideas/People) after
 the owner's first field test showed filing belongs where you tap. Keeps

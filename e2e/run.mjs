@@ -366,6 +366,71 @@ await scenario("pinning: pinned notes rise to the top of the shelf", async () =>
   await ctx.close();
 });
 
+// ------------------------------------------------------------------- trash
+await scenario("trash: deleted notes wait 30 days and can be restored", async () => {
+  const seed = [note({ text: "nearly lost thought", day: todayKey() })];
+  const { ctx, page } = await freshPage(seed);
+  await page.getByRole("button", { name: /Delete jot: nearly/ }).click();
+  await page.waitForTimeout(400);
+  expect((await page.locator(".jot-bubble").count()) === 0, "jot should leave the stream");
+  // It sits in the Trash at the foot of the Library.
+  await page.getByRole("button", { name: "Library" }).click();
+  await page.getByRole("button", { name: /Trash · 1/ }).click();
+  await expectText(page, ".trash-row .lib-name", /nearly lost thought/);
+  await expectText(page, ".trash-row .lib-detail", /jot · clears in \d+d/);
+  await page.getByRole("button", { name: /Restore nearly/ }).click();
+  await expectText(page, ".toast", /restored/);
+  // Back on the stream, and the trash link is gone.
+  expect(
+    (await page.locator(".trash-link").count()) === 0,
+    "trash link should hide when empty",
+  );
+  await page.getByRole("button", { name: "Jot", exact: true }).click();
+  await expectText(page, ".jot-text", /nearly lost thought/);
+  await ctx.close();
+});
+
+await scenario("trash: empty trash removes everything for good", async () => {
+  const seed = [
+    note({ id: "t1", text: "first doomed", day: todayKey(), deletedAt: Date.now() - 1000 }),
+    note({ id: "t2", shelf: "notes", title: "Old plan", day: todayKey(), deletedAt: Date.now() - 2000 }),
+  ];
+  const { ctx, page } = await freshPage(seed);
+  await page.getByRole("button", { name: "Library" }).click();
+  await page.getByRole("button", { name: /Trash · 2/ }).click();
+  await page.getByRole("button", { name: "Empty trash" }).click();
+  await expectText(page, ".toast", /trash emptied/);
+  expect(
+    (await page.locator(".trash-link").count()) === 0,
+    "trash should be gone",
+  );
+  await page.reload();
+  await page.getByRole("button", { name: "Library" }).click();
+  expect(
+    (await page.locator(".trash-link").count()) === 0,
+    "emptying must persist",
+  );
+  await ctx.close();
+});
+
+await scenario("trash: entries older than 30 days purge at boot", async () => {
+  const D = 24 * 3600_000;
+  const seed = [
+    note({ text: "ancient delete", day: todayKey(), deletedAt: Date.now() - 31 * D }),
+    note({ text: "recent delete", day: todayKey(), deletedAt: Date.now() - 5 * D }),
+  ];
+  const { ctx, page } = await freshPage(seed);
+  await page.getByRole("button", { name: "Library" }).click();
+  await page.getByRole("button", { name: /Trash · 1/ }).click();
+  await page.waitForSelector(".trash-row");
+  const names = await page.locator(".trash-row .lib-name").allInnerTexts();
+  expect(
+    names.length === 1 && /recent delete/.test(names[0]),
+    `expected only the recent delete, got ${JSON.stringify(names)}`,
+  );
+  await ctx.close();
+});
+
 // -------------------------------------------------------- library editor
 await scenario("library: + New note creates on the picked shelf", async () => {
   const { ctx, page } = await freshPage();

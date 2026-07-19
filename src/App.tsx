@@ -10,6 +10,7 @@ import JotSheet from "./components/JotSheet";
 import KeepSheet from "./components/KeepSheet";
 import NoteSheet, { type NoteSheetMode } from "./components/NoteSheet";
 import SettingsSheet from "./components/SettingsSheet";
+import TrashSheet from "./components/TrashSheet";
 import Toast from "./components/Toast";
 
 type Tab = "jot" | "library";
@@ -58,12 +59,14 @@ export default function App() {
   // True when the keep sheet was reached from the edit sheet's People chip.
   const [keepAskPerson, setKeepAskPerson] = useState(false);
   const [noteMode, setNoteMode] = useState<NoteSheetMode>(null);
+  const [trashOpen, setTrashOpen] = useState(false);
   const captureRef = useRef<CaptureBarHandle>(null);
 
   const {
     notes,
     stream,
     people,
+    trash,
     now,
     settings,
     setTheme,
@@ -75,6 +78,7 @@ export default function App() {
     togglePinned,
     deleteNote,
     restoreNote,
+    emptyTrash,
     keepJot,
     importBackup,
   } = useNotes();
@@ -225,6 +229,7 @@ export default function App() {
         <LibraryScreen
           notes={notes}
           filter={filter}
+          trashCount={trash.length}
           onSetFilter={setFilter}
           onOpen={(note) => setNoteMode({ kind: "edit", note })}
           onNew={() =>
@@ -234,6 +239,7 @@ export default function App() {
             })
           }
           onTogglePinned={togglePinned}
+          onOpenTrash={() => setTrashOpen(true)}
         />
       )}
 
@@ -281,6 +287,23 @@ export default function App() {
         onImport={importBackup}
         onNotify={(message) => showToast({ kind: "confirm", message }, 2600)}
         onClose={() => setSettingsOpen(false)}
+      />
+
+      <TrashSheet
+        open={trashOpen}
+        trash={trash}
+        now={now}
+        onRestore={(note) => {
+          restoreNote(note);
+          if (trash.length === 1) setTrashOpen(false);
+          showToast({ kind: "confirm", message: "restored" }, 1600);
+        }}
+        onEmpty={() => {
+          emptyTrash();
+          setTrashOpen(false);
+          showToast({ kind: "confirm", message: "trash emptied" }, 1600);
+        }}
+        onClose={() => setTrashOpen(false)}
       />
 
       <Toast toast={toast} onHold={pause} onRelease={resume} />

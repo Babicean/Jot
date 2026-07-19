@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Note } from "../types";
 import {
   appendedText,
+  clearsInLabel,
   createJot,
   createLibraryNote,
   findPerson,
@@ -13,6 +14,8 @@ import {
   remainingLabel,
   streamNotes,
   sweepExpired,
+  trashNotes,
+  TRASH_RETENTION_MS,
 } from "./notes";
 
 function note(overrides: Partial<Note> = {}): Note {
@@ -28,6 +31,7 @@ function note(overrides: Partial<Note> = {}): Note {
     pinned: false,
     checklist: false,
     ticked: [],
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -35,6 +39,12 @@ function note(overrides: Partial<Note> = {}): Note {
 describe("isNote — strict validation", () => {
   it("accepts a well-formed note", () => {
     expect(isNote(note())).toBe(true);
+  });
+
+  it("tolerates records from before the Trash existed", () => {
+    const legacy = note() as unknown as Record<string, unknown>;
+    delete legacy.deletedAt;
+    expect(isNote(legacy)).toBe(true);
   });
 
   it("rejects junk and near-misses", () => {
@@ -48,6 +58,7 @@ describe("isNote — strict validation", () => {
     expect(isNote({ ...note(), expiresAt: "soon" })).toBe(false);
     expect(isNote({ ...note(), ticked: [1, "two"] })).toBe(false);
     expect(isNote({ ...note(), pinned: "yes" })).toBe(false);
+    expect(isNote({ ...note(), deletedAt: "gone" })).toBe(false);
   });
 });
 
@@ -109,6 +120,57 @@ describe("sweepExpired", () => {
 
   it("is a no-op on an empty list", () => {
     expect(sweepExpired([], 1000)).toEqual({ notes: [], removed: 0 });
+  });
+
+  it("purges Trash entries after 30 days, keeps younger ones", () => {
+    const notes = [
+      note({ id: "old", deletedAt: 0 }),
+      note({ id: "fresh", deletedAt: 1000 }),
+    ];
+    const result = sweepExpired(notes, TRASH_RETENTION_MS + 1);
+    expect(result.removed).toBe(1);
+    expect(result.notes.map((n) => n.id)).toEqual(["fresh"]);
+  });
+
+  it("never expiry-sweeps a trashed jot before its 30 days", () => {
+    const trashed = note({ id: "t", expiresAt: 500, deletedAt: 900 });
+    const result = sweepExpired([trashed], 1000);
+    expect(result.removed).toBe(0);
+  });
+});
+
+describe("Trash", () => {
+  it("hides deleted notes from the stream and the Library", () => {
+    const notes = [
+      note({ id: "live" }),
+      note({ id: "gone", deletedAt: 500 }),
+      note({ id: "kept", shelf: "notes", deletedAt: 500 }),
+    ];
+    expect(streamNotes(notes).map((n) => n.id)).toEqual(["live"]);
+    expect(libraryNotes(notes, "all")).toEqual([]);
+  });
+
+  it("hides a deleted person from suggestions and append matching", () => {
+    const gone = note({ shelf: "people", title: "Ana", deletedAt: 500 });
+    expect(peopleNames([gone])).toEqual([]);
+    expect(findPerson([gone], "Ana")).toBeNull();
+  });
+
+  it("lists trash newest deletion first", () => {
+    const notes = [
+      note({ id: "a", deletedAt: 100 }),
+      note({ id: "b", deletedAt: 300 }),
+      note({ id: "live" }),
+    ];
+    expect(trashNotes(notes).map((n) => n.id)).toEqual(["b", "a"]);
+  });
+
+  it("labels time left in days, then 'clears today'", () => {
+    expect(clearsInLabel(0, 7 * 24 * 3600_000)).toBe("clears in 23d");
+    expect(clearsInLabel(0, TRASH_RETENTION_MS - 3600_000)).toBe(
+      "clears today",
+    );
+    expect(clearsInLabel(0, TRASH_RETENTION_MS + 999)).toBe("clears today");
   });
 });
 

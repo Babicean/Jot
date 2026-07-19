@@ -38,8 +38,17 @@ export function isNote(value: unknown): value is Note {
     typeof n.pinned === "boolean" &&
     typeof n.checklist === "boolean" &&
     Array.isArray(n.ticked) &&
-    n.ticked.every((t) => typeof t === "number")
+    n.ticked.every((t) => typeof t === "number") &&
+    // Absent on records from before the Trash existed — tolerated.
+    (n.deletedAt === undefined ||
+      n.deletedAt === null ||
+      (typeof n.deletedAt === "number" && Number.isFinite(n.deletedAt)))
   );
+}
+
+/** Fill fields that older stored records predate. */
+export function normalizeNote(note: Note): Note {
+  return { ...note, deletedAt: note.deletedAt ?? null };
 }
 
 export function loadNotes(): Note[] {
@@ -48,7 +57,7 @@ export function loadNotes(): Note[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as StoreShape;
     if (!parsed || !Array.isArray(parsed.notes)) return [];
-    return parsed.notes.filter(isNote);
+    return parsed.notes.filter(isNote).map(normalizeNote);
   } catch {
     // Corrupt or inaccessible storage: start clean rather than crash.
     return [];
@@ -102,6 +111,7 @@ export function createJot(
     pinned: false,
     checklist: false,
     ticked: [],
+    deletedAt: null,
   };
 }
 
@@ -125,28 +135,53 @@ export function createLibraryNote(
     pinned: false,
     checklist: false,
     ticked: [],
+    deletedAt: null,
   };
 }
 
 export interface SweepResult {
   notes: Note[];
-  /** How many expired jots vanished (silently — that is the point). */
+  /** How many notes vanished (silently — that is the point). */
   removed: number;
 }
 
-/** Drop expired stream jots. Kept notes never expire (expiresAt is cleared). */
+/** How long the Trash holds a deleted note before purging it. */
+export const TRASH_RETENTION_MS = 30 * 24 * 3600_000;
+
+/**
+ * Drop what has run out of time: expired stream jots (kept notes never
+ * expire) and Trash entries past their 30 days.
+ */
 export function sweepExpired(notes: Note[], now: number): SweepResult {
-  const kept = notes.filter(
-    (n) =>
-      !(n.shelf === "stream" && n.expiresAt !== null && n.expiresAt <= now),
-  );
+  const kept = notes.filter((n) => {
+    if (n.deletedAt !== null) return n.deletedAt + TRASH_RETENTION_MS > now;
+    return !(
+      n.shelf === "stream" &&
+      n.expiresAt !== null &&
+      n.expiresAt <= now
+    );
+  });
   return { notes: kept, removed: notes.length - kept.length };
+}
+
+/** Trash contents, most recently deleted first. */
+export function trashNotes(notes: Note[]): Note[] {
+  return notes
+    .filter((n) => n.deletedAt !== null)
+    .sort((a, b) => b.deletedAt! - a.deletedAt! || a.id.localeCompare(b.id));
+}
+
+/** "clears in 23d", or "clears today" inside the final day. */
+export function clearsInLabel(deletedAt: number, now: number): string {
+  const ms = Math.max(0, deletedAt + TRASH_RETENTION_MS - now);
+  const days = Math.floor(ms / (24 * 3600_000));
+  return days < 1 ? "clears today" : `clears in ${days}d`;
 }
 
 /** Stream jots, oldest first (the stream reads top to bottom like a chat). */
 export function streamNotes(notes: Note[]): Note[] {
   return notes
-    .filter((n) => n.shelf === "stream")
+    .filter((n) => n.shelf === "stream" && n.deletedAt === null)
     .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id));
 }
 
@@ -176,7 +211,9 @@ export function libraryNotes(notes: Note[], filter: LibraryFilter): Note[] {
   return notes
     .filter(
       (n) =>
-        n.shelf !== "stream" && (filter === "all" || n.shelf === filter),
+        n.shelf !== "stream" &&
+        n.deletedAt === null &&
+        (filter === "all" || n.shelf === filter),
     )
     .sort(
       (a, b) =>
@@ -189,7 +226,10 @@ export function libraryNotes(notes: Note[], filter: LibraryFilter): Note[] {
 /** Existing People-page names, alphabetical, for the keep sheet's suggestions. */
 export function peopleNames(notes: Note[]): string[] {
   return notes
-    .filter((n) => n.shelf === "people" && n.title.trim() !== "")
+    .filter(
+      (n) =>
+        n.shelf === "people" && n.deletedAt === null && n.title.trim() !== "",
+    )
     .map((n) => n.title.trim())
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 }
@@ -200,7 +240,10 @@ export function findPerson(notes: Note[], name: string): Note | null {
   if (target === "") return null;
   return (
     notes.find(
-      (n) => n.shelf === "people" && n.title.trim().toLowerCase() === target,
+      (n) =>
+        n.shelf === "people" &&
+        n.deletedAt === null &&
+        n.title.trim().toLowerCase() === target,
     ) ?? null
   );
 }

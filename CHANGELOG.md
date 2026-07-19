@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.2 — code 3 — 2026-07-19
+
+A second safeguard behind the quick undo.
+
+- Trash: deleting a jot or note now moves it to a Trash that holds it
+  for 30 days, then cleans itself out. A quiet "Trash · N" link sits at
+  the foot of the Library whenever something is in it; the sheet shows
+  what each entry was, how long it has left, restore per note, and
+  Empty trash.
+- The 5-second undo toast stays as the fast path. Expired disappearing
+  jots still skip the Trash entirely; vanishing is their point.
+- Backups now carry the deletion state; older backups and existing
+  installs load unchanged.
+
 ## 0.1.1 — code 2 — 2026-07-19
 
 Owner feedback from day one: filing a jot should be reachable from the

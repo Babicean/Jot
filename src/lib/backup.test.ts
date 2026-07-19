@@ -20,6 +20,7 @@ function note(overrides: Partial<Note> = {}): Note {
     pinned: false,
     checklist: false,
     ticked: [],
+    deletedAt: null,
     ...overrides,
   };
 }
@@ -79,6 +80,15 @@ describe("parseBackup — tolerant by design", () => {
   it("survives a backup with no settings block", () => {
     const parsed = parseBackup(JSON.stringify({ app: "jot", notes: [] }));
     expect(parsed!.settings).toEqual(SETTINGS);
+  });
+
+  it("normalizes 0.1.x backups that predate the Trash field", () => {
+    const legacy = { ...note() } as unknown as Record<string, unknown>;
+    delete legacy.deletedAt;
+    const parsed = parseBackup(
+      JSON.stringify({ app: "jot", version: 1, notes: [legacy] }),
+    );
+    expect(parsed!.notes).toEqual([note()]);
   });
 });
 

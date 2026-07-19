@@ -11,6 +11,7 @@ import {
   peopleNames,
   saveNotes,
   sweepExpired,
+  trashNotes,
   type ExpiryChoice,
 } from "../lib/notes";
 import {
@@ -170,21 +171,40 @@ export function useNotes() {
     );
   }, []);
 
-  /** Delete a note, returning it so the caller can offer undo. */
+  /**
+   * Delete a note: it moves to the Trash (30 days, then purged) rather
+   * than vanishing. Returns it so the caller can offer the quick undo.
+   */
   const deleteNote = useCallback(
     (id: string): Note | null => {
       const note = notes.find((n) => n.id === id) ?? null;
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      const at = Date.now();
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, deletedAt: at, updatedAt: at } : n,
+        ),
+      );
       return note;
     },
     [notes],
   );
 
-  /** Put a previously deleted note back exactly as it was. */
+  /** Bring a deleted note back exactly as it was. */
   const restoreNote = useCallback((note: Note) => {
+    const at = Date.now();
     setNotes((prev) =>
-      prev.some((n) => n.id === note.id) ? prev : [...prev, note],
+      prev.some((n) => n.id === note.id)
+        ? prev.map((n) =>
+            n.id === note.id ? { ...n, deletedAt: null, updatedAt: at } : n,
+          )
+        : // Already purged (trash emptied meanwhile): re-insert it.
+          [...prev, { ...note, deletedAt: null, updatedAt: at }],
     );
+  }, []);
+
+  /** Hard-remove everything in the Trash, right now. */
+  const emptyTrash = useCallback(() => {
+    setNotes((prev) => prev.filter((n) => n.deletedAt === null));
   }, []);
 
   /**
@@ -279,11 +299,13 @@ export function useNotes() {
 
   const stream = useMemo(() => groupStream(notes), [notes]);
   const people = useMemo(() => peopleNames(notes), [notes]);
+  const trash = useMemo(() => trashNotes(notes), [notes]);
 
   return {
     notes,
     stream,
     people,
+    trash,
     today,
     now,
     settings,
@@ -296,6 +318,7 @@ export function useNotes() {
     togglePinned,
     deleteNote,
     restoreNote,
+    emptyTrash,
     keepJot,
     importBackup,
   };

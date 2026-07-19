@@ -32,4 +32,10 @@ export interface Note {
   checklist: boolean;
   /** Reserved for checklist mode: indices of ticked lines. */
   ticked: number[];
+  /**
+   * Epoch ms when the note was deleted into the Trash; null = live.
+   * Trash purges after 30 days. Expired disappearing jots skip the
+   * Trash entirely (no graveyard is their point).
+   */
+  deletedAt: number | null;
 }

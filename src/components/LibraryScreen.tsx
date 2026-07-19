@@ -4,10 +4,12 @@ import { libraryNotes, type LibraryFilter } from "../lib/notes";
 interface Props {
   notes: Note[];
   filter: LibraryFilter;
+  trashCount: number;
   onSetFilter: (filter: LibraryFilter) => void;
   onOpen: (note: Note) => void;
   onNew: () => void;
   onTogglePinned: (id: string) => void;
+  onOpenTrash: () => void;
 }
 
 const FILTERS: { id: LibraryFilter; label: string }[] = [
@@ -34,10 +36,12 @@ const EMPTY_COPY: Record<LibraryFilter, string> = {
 export default function LibraryScreen({
   notes,
   filter,
+  trashCount,
   onSetFilter,
   onOpen,
   onNew,
   onTogglePinned,
+  onOpenTrash,
 }: Props) {
   const list = libraryNotes(notes, filter);
 
@@ -133,6 +137,12 @@ export default function LibraryScreen({
             );
           })}
         </div>
+      )}
+
+      {trashCount > 0 && (
+        <button className="trash-link" onClick={onOpenTrash}>
+          Trash · {trashCount}
+        </button>
       )}
     </div>
   );

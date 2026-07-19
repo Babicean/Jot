@@ -1,5 +1,5 @@
 import type { Note } from "../types";
-import { isNote } from "./notes";
+import { isNote, normalizeNote } from "./notes";
 import { isAccent, type Settings } from "./settings";
 
 /**
@@ -58,7 +58,7 @@ export function parseBackup(json: string): BackupPayload | null {
       app: "jot",
       version: typeof raw.version === "number" ? raw.version : 1,
       exportedAt: typeof raw.exportedAt === "string" ? raw.exportedAt : "",
-      notes: raw.notes.filter(isNote),
+      notes: raw.notes.filter(isNote).map(normalizeNote),
       settings: {
         theme: theme === "light" || theme === "dark" ? theme : "system",
         accent: isAccent(accent) ? accent : "azure",
