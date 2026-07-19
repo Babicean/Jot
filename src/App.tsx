@@ -271,8 +271,8 @@ export default function App() {
       <NoteSheet
         mode={noteMode}
         onSave={(id, patch) => updateNote(id, patch)}
-        onCreate={(shelf, title, text, pinned) =>
-          addNote(shelf, title, text, pinned)
+        onCreate={(shelf, title, text, pinned, checklist) =>
+          addNote(shelf, title, text, pinned, checklist)
         }
         onDelete={removeWithUndo}
         onClose={() => setNoteMode(null)}

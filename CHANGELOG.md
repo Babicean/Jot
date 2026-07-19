@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.1 — code 5 — 2026-07-19
+
+Lists that tick.
+
+- Checklists: any Library note flips into checklist mode from its
+  editor. Every line becomes an item with a tick circle; ticked items
+  get a quiet strikethrough and sink below the unticked ones; the
+  note's row shows "2 of 6". An add item field grows the list without
+  leaving checklist mode; flip the switch off to edit lines as text.
+- Storage stays dumb: a checklist is still one plain note, so backups,
+  merge, and search treat it like any other.
+
 ## 0.2.0 — code 4 — 2026-07-19
 
 Retrieval is the other half of capture.

@@ -161,7 +161,14 @@ router, no state library, no backend SDK.
   `pkill` exits 144 (run it in its own command); download artifacts
   vanish on context close (`download.saveAs` first).
 
-## Current state — v0.2.0 (code 4)
+## Current state — v0.2.1 (code 5)
+
+v0.2.1: checklists. The reserved `checklist`/`ticked` fields went live:
+the note editor gained a Checklist switch; on, the textarea becomes a
+tickable list (`lib/checklist.ts`: items keep raw line indices as tick
+identities, ticked sink below unticked, stale indices after text edits
+count zero). Library rows show "N of M". Editing item text = flip the
+switch off. Storage unchanged — one plain note.
 
 v0.2.0: search. A field atop the Library searches stream + all shelves
 (titles and bodies, case-insensitive substring, 150 ms debounce), pure

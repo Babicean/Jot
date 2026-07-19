@@ -138,8 +138,14 @@ export function useNotes() {
 
   /** "+ New note" straight onto a Library shelf. */
   const addNote = useCallback(
-    (shelf: LibraryShelf, title: string, text: string, pinned = false): Note => {
-      const note = { ...createLibraryNote(shelf, title, text), pinned };
+    (
+      shelf: LibraryShelf,
+      title: string,
+      text: string,
+      pinned = false,
+      checklist = false,
+    ): Note => {
+      const note = { ...createLibraryNote(shelf, title, text), pinned, checklist };
       setNotes((prev) => [...prev, note]);
       return note;
     },
@@ -151,7 +157,10 @@ export function useNotes() {
     (
       id: string,
       patch: Partial<
-        Pick<Note, "text" | "title" | "shelf" | "expiresAt" | "pinned">
+        Pick<
+          Note,
+          "text" | "title" | "shelf" | "expiresAt" | "pinned" | "checklist" | "ticked"
+        >
       >,
     ) => {
       setNotes((prev) =>

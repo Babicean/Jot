@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Note } from "../types";
 import { libraryNotes, type LibraryFilter } from "../lib/notes";
 import { searchNotes } from "../lib/search";
+import { checklistSummary } from "../lib/checklist";
 import { formatDayLabel } from "../lib/format";
 
 interface Props {
@@ -206,10 +207,14 @@ export default function LibraryScreen({
         <div className="card lib-list">
           {list.map((note) => {
             const heading = note.title.trim() || note.text.split("\n")[0];
-            const preview =
+            let preview =
               note.title.trim() !== ""
                 ? note.text.split("\n").find((l) => l.trim() !== "") ?? ""
                 : note.text.split("\n").slice(1).join(" ");
+            if (note.checklist) {
+              const s = checklistSummary(note.text, note.ticked);
+              preview = `${s.done} of ${s.total}`;
+            }
             return (
               <div key={note.id} className="lib-row">
                 <button

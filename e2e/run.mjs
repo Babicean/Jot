@@ -453,6 +453,64 @@ await scenario("library: + New note creates on the picked shelf", async () => {
   await ctx.close();
 });
 
+// --------------------------------------------------------------- checklists
+await scenario("checklist: tick, sink, N of M, add item, persist", async () => {
+  const seed = [
+    note({
+      shelf: "notes",
+      title: "Groceries",
+      text: "milk\ncoffee filters\nbread",
+      checklist: true,
+      day: todayKey(),
+    }),
+  ];
+  const { ctx, page } = await freshPage(seed);
+  await page.getByRole("button", { name: "Library" }).click();
+  await expectText(page, ".lib-detail", /0 of 3/);
+  await page.locator(".lib-main", { hasText: "Groceries" }).click();
+  // Tick milk: it sinks below the others with a strikethrough.
+  await page.getByRole("listitem", { name: "Tick milk" }).click();
+  let labels = await page.locator(".check-label").allInnerTexts();
+  expect(
+    labels.join("|") === "coffee filters|bread|milk",
+    `ticked item should sink, got ${labels.join("|")}`,
+  );
+  // Add an item from the field.
+  await page.getByLabel("Add item").fill("eggs");
+  await page.getByLabel("Add item").press("Enter");
+  await expectText(page, ".check-label", /eggs/);
+  await page.getByRole("button", { name: "Done" }).click();
+  await expectText(page, ".lib-detail", /1 of 4/);
+  // Survives a reload; unticking restores the count.
+  await page.reload();
+  await page.getByRole("button", { name: "Library" }).click();
+  await expectText(page, ".lib-detail", /1 of 4/);
+  await page.locator(".lib-main", { hasText: "Groceries" }).click();
+  await page.getByRole("listitem", { name: "Untick milk" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expectText(page, ".lib-detail", /0 of 4/);
+  await ctx.close();
+});
+
+await scenario("checklist: any note flips into checklist mode from the editor", async () => {
+  const seed = [
+    note({
+      shelf: "notes",
+      title: "Packing",
+      text: "passport\nchargers",
+      day: todayKey(),
+    }),
+  ];
+  const { ctx, page } = await freshPage(seed);
+  await page.getByRole("button", { name: "Library" }).click();
+  await page.locator(".lib-main", { hasText: "Packing" }).click();
+  await page.getByRole("switch", { name: "Checklist" }).click();
+  await page.getByRole("listitem", { name: "Tick passport" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expectText(page, ".lib-detail", /1 of 2/);
+  await ctx.close();
+});
+
 // ------------------------------------------------------------------ search
 await scenario("search: finds across stream and shelves, tap-through opens", async () => {
   const seed = [
