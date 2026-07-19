@@ -453,6 +453,43 @@ await scenario("library: + New note creates on the picked shelf", async () => {
   await ctx.close();
 });
 
+// ------------------------------------------------------------------ search
+await scenario("search: finds across stream and shelves, tap-through opens", async () => {
+  const seed = [
+    note({ text: "buy tulips for ana", day: todayKey() }),
+    note({ shelf: "notes", title: "Balcony plan", text: "tulip boxes", day: todayKey() }),
+    note({ shelf: "people", title: "Ana", text: "loves tulips", day: todayKey() }),
+    note({ text: "tulip graveyard", day: todayKey(), deletedAt: Date.now() - 1000 }),
+  ];
+  const { ctx, page } = await freshPage(seed);
+  await page.getByRole("button", { name: "Library" }).click();
+  await page.getByLabel("Search everything").fill("tulip");
+  // Grouped results, trash excluded.
+  await expectText(page, ".section-label", /stream/i);
+  await expectText(page, ".section-label", /notes/i);
+  await expectText(page, ".section-label", /people/i);
+  await expectText(page, ".lib-name", /buy tulips for ana/);
+  const names = await page.locator(".lib-name").allInnerTexts();
+  expect(
+    !names.some((n) => /graveyard/.test(n)),
+    "trashed notes must not surface in search",
+  );
+  // A stream hit opens the jot sheet.
+  await page.locator(".lib-main", { hasText: "buy tulips" }).click();
+  await page.waitForSelector('[aria-label="Edit jot"]');
+  await page.getByRole("button", { name: "Close" }).click();
+  // A shelf hit opens the note editor.
+  await page.locator(".lib-main", { hasText: "Balcony plan" }).click();
+  await page.waitForSelector('[aria-label="Edit note"]');
+  await page.getByRole("button", { name: "Close" }).click();
+  // No match says so; clearing brings the shelves back.
+  await page.getByLabel("Search everything").fill("zzzz");
+  await expectText(page, ".empty-title", /nothing matches/);
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await page.waitForSelector(".filter-row");
+  await ctx.close();
+});
+
 // ------------------------------------------------------------------ themes
 await scenario("themes: dark override and accents stamp the root", async () => {
   const { ctx, page } = await freshPage();

@@ -232,6 +232,7 @@ export default function App() {
           trashCount={trash.length}
           onSetFilter={setFilter}
           onOpen={(note) => setNoteMode({ kind: "edit", note })}
+          onOpenJot={setEditingJot}
           onNew={() =>
             setNoteMode({
               kind: "new",

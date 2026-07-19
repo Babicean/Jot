@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — code 4 — 2026-07-19
+
+Retrieval is the other half of capture.
+
+- Search: a field at the top of the Library that searches everything.
+  Stream jots and all three shelves, titles and bodies, plain
+  case-insensitive matching as you type. Results group under Stream,
+  Notes, Ideas, and People; tapping a stream hit opens the jot sheet,
+  a shelf hit opens the note editor. Trash never surfaces.
+
 ## 0.1.2 — code 3 — 2026-07-19
 
 A second safeguard behind the quick undo.

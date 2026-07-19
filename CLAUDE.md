@@ -37,8 +37,7 @@ Two tabs plus a settings gear:
 
 No accounts, no sync, no server anything (but the backup JSON is the
 future sync payload — keep it stable). No photos, folders, tags, markdown,
-rich text, reminders, widgets, telemetry. Search and checklists are
-planned (v0.4 in the original plan) but not built yet.
+rich text, reminders, widgets, telemetry.
 
 ## Owner's voice rules (never break these)
 
@@ -162,7 +161,14 @@ router, no state library, no backend SDK.
   `pkill` exits 144 (run it in its own command); download artifacts
   vanish on context close (`download.saveAs` first).
 
-## Current state — v0.1.2 (code 3)
+## Current state — v0.2.0 (code 4)
+
+v0.2.0: search. A field atop the Library searches stream + all shelves
+(titles and bodies, case-insensitive substring, 150 ms debounce), pure
+`searchNotes` in `lib/search.ts` with tests. Results group under
+Stream/Notes/Ideas/People; stream hits open the jot sheet, shelf hits
+the editor; Trash never surfaces. Next in this owner-approved batch:
+checklists, share-into-Jot + app shortcut, timestamped People entries.
 
 v0.1.2: owner-requested Trash. Deletes (manual only) set `deletedAt`
 on the record instead of removing it; everything derived (stream,
