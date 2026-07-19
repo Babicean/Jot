@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Note } from "../types";
 import {
+  appendedEntry,
   appendedText,
   clearsInLabel,
+  entryDateLabel,
   createJot,
   createLibraryNote,
   findPerson,
@@ -249,6 +251,23 @@ describe("People — one page per person", () => {
     );
     expect(appendedText("", "first memory")).toBe("first memory");
     expect(appendedText("trailing\n\n", "next")).toBe("trailing\n\nnext");
+  });
+
+  it("stamps kept entries with their date", () => {
+    const when = new Date(2026, 6, 19);
+    const label = entryDateLabel(when, when);
+    expect(appendedEntry("loves tulips", "birthday in May", when)).toBe(
+      `loves tulips\n\n${label} · birthday in May`,
+    );
+    expect(appendedEntry("", "first memory", when)).toBe(
+      `${label} · first memory`,
+    );
+  });
+
+  it("adds the year to date stamps from other years", () => {
+    const now = new Date(2026, 6, 19);
+    expect(entryDateLabel(new Date(2026, 6, 19), now)).not.toMatch(/2026/);
+    expect(entryDateLabel(new Date(2025, 11, 30), now)).toMatch(/2025/);
   });
 });
 

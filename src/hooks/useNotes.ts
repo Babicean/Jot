@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DayKey, LibraryShelf, Note } from "../types";
 import { msUntilNextBoundary, trackingDayFor } from "../lib/day";
 import {
-  appendedText,
+  appendedEntry,
   createJot,
   createLibraryNote,
   findPerson,
@@ -264,7 +264,7 @@ export function useNotes() {
             .filter((n) => n.id !== id)
             .map((n) =>
               n.id === person.id
-                ? { ...n, text: appendedText(n.text, jot.text), updatedAt: at }
+                ? { ...n, text: appendedEntry(n.text, jot.text), updatedAt: at }
                 : n,
             ),
         );
@@ -282,7 +282,8 @@ export function useNotes() {
         };
       }
 
-      const page = createLibraryNote("people", name, jot.text);
+      // A new page's first memory gets its date stamp too.
+      const page = createLibraryNote("people", name, appendedEntry("", jot.text));
       setNotes((prev) => [...prev.filter((n) => n.id !== id), page]);
       return {
         label: page.title,

@@ -260,6 +260,13 @@ await scenario("keep to People: creates the person's page", async () => {
   await page.getByRole("button", { name: "Library" }).click();
   await page.getByRole("radio", { name: "People" }).click();
   await expectText(page, ".lib-name", /Mira/);
+  // A fresh page's first memory carries its date stamp.
+  await page.locator(".lib-main", { hasText: "Mira" }).click();
+  const firstEntry = await page.getByLabel("Note text").inputValue();
+  expect(
+    /^.+ · mira wants that plant book$/.test(firstEntry),
+    `expected a dated first entry, got ${JSON.stringify(firstEntry)}`,
+  );
   await ctx.close();
 });
 
@@ -283,9 +290,12 @@ await scenario("keep to People: appends to an existing page, undo reverts", asyn
   // The page accumulated the jot text.
   await page.getByRole("button", { name: "Library" }).click();
   await page.locator(".lib-main", { hasText: "Ana" }).click();
+  const dateLabel = await page.evaluate(() =>
+    new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+  );
   const body = await page.getByLabel("Note text").inputValue();
   expect(
-    body === "loves tulips\n\nana's birthday is in June",
+    body === `loves tulips\n\n${dateLabel} · ana's birthday is in June`,
     `unexpected People page body: ${JSON.stringify(body)}`,
   );
   await page.getByRole("button", { name: "Close" }).click();
@@ -334,9 +344,12 @@ await scenario("keep from edit sheet: People jumps to the name step", async () =
   await expectText(page, ".toast", /added to Ana/);
   await page.getByRole("button", { name: "Library" }).click();
   await page.locator(".lib-main", { hasText: "Ana" }).click();
+  const dateLabel = await page.evaluate(() =>
+    new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+  );
   const body = await page.getByLabel("Note text").inputValue();
   expect(
-    body === "loves tulips\n\nana mentioned a cabin trip",
+    body === `loves tulips\n\n${dateLabel} · ana mentioned a cabin trip`,
     `unexpected People page body: ${JSON.stringify(body)}`,
   );
   await ctx.close();

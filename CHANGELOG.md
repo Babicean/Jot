@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.3 — code 7 — 2026-07-19
+
+A page per person becomes a diary per person.
+
+- Timestamped People entries: keeping a jot to a person now lands as a
+  dated line on their page, "Jul 19 · mentioned a cabin trip", with the
+  year added for older stamps. A new person's first memory is dated
+  too. The page stays plain editable text; nothing changes for hand
+  edits or for pages written directly.
+
 ## 0.2.2 — code 6 — 2026-07-19
 
 Capture without opening the app first.

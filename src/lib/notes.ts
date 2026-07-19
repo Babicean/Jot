@@ -254,6 +254,27 @@ export function appendedText(existing: string, addition: string): string {
   return base === "" ? addition : `${base}\n\n${addition}`;
 }
 
+/** "Jul 19" this year, "Jul 19, 2025" otherwise — the entry date stamp. */
+export function entryDateLabel(when: Date, now: Date = new Date()): string {
+  return when.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    ...(when.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
+  });
+}
+
+/**
+ * A kept jot lands on a person's page as a dated entry: "Jul 19 · text".
+ * Still plain text in one note — the date is part of the body.
+ */
+export function appendedEntry(
+  existing: string,
+  text: string,
+  when: Date = new Date(),
+): string {
+  return appendedText(existing, `${entryDateLabel(when)} · ${text}`);
+}
+
 /**
  * The quiet countdown cue: "22h" while hours remain, "40m" under one hour.
  * Hours round to nearest so a fresh 24h jot reads "24h" even when the UI

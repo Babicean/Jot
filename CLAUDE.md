@@ -161,7 +161,15 @@ router, no state library, no backend SDK.
   `pkill` exits 144 (run it in its own command); download artifacts
   vanish on context close (`download.saveAs` first).
 
-## Current state — v0.2.2 (code 6)
+## Current state — v0.2.3 (code 7)
+
+v0.2.3: timestamped People entries. Keeps to People append via
+`appendedEntry` ("Jul 19 · text", year added when not this year,
+`entryDateLabel` uses the device locale); new pages stamp their first
+memory too. Storage stays one plain-text note per person — the date is
+part of the body, so hand edits, search, merge, and backups are
+untouched. This closed the owner-approved v0.2 batch (search,
+checklists, share-into-Jot + shortcut, People timestamps).
 
 v0.2.2: share-into-Jot + the "new jot" launcher shortcut. Android side:
 a tiny custom Capacitor plugin (`ShareTargetPlugin.java`, registered in
