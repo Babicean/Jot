@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1 — code 2 — 2026-07-19
+
+Owner feedback from day one: filing a jot should be reachable from the
+place you naturally tap.
+
+- The edit jot sheet now has a Keep row (Notes / Ideas / People). Tap a
+  jot, file it in one more tap. Text edits made in the sheet travel with
+  the keep, and People goes straight to "who is this about?".
+- The bookmark on each jot row still keeps in one tap from the stream.
+
 ## 0.1.0 — code 1 — 2026-07-19
 
 The first shippable Jot. Open it and you are already writing.

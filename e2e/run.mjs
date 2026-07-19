@@ -111,12 +111,16 @@ await scenario("capture: type, send, lands in stream under Today", async () => {
   await ctx.close();
 });
 
-async function expectText(page, selector, re) {
-  const texts = await page.locator(selector).allInnerTexts();
-  expect(
-    texts.some((t) => re.test(t)),
-    `expected ${selector} to match ${re}, got: ${JSON.stringify(texts)}`,
-  );
+async function expectText(page, selector, re, timeoutMs = 4000) {
+  const deadline = Date.now() + timeoutMs;
+  let texts = [];
+  for (;;) {
+    texts = await page.locator(selector).allInnerTexts();
+    if (texts.some((t) => re.test(t))) return;
+    if (Date.now() > deadline) break;
+    await page.waitForTimeout(100);
+  }
+  expect(false, `expected ${selector} to match ${re}, got: ${JSON.stringify(texts)}`);
 }
 
 // ------------------------------------------------------------------- edit
@@ -293,6 +297,48 @@ await scenario("keep to People: appends to an existing page, undo reverts", asyn
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Jot", exact: true }).click();
   await expectText(page, ".jot-text", /ana's birthday/);
+  await ctx.close();
+});
+
+// ------------------------------------------------- keep from the edit sheet
+await scenario("keep from edit sheet: files to Notes with text edits kept", async () => {
+  const seed = [note({ text: "rough thought", day: todayKey() })];
+  const { ctx, page } = await freshPage(seed);
+  await page.locator(".jot-bubble").click();
+  const sheet = page.getByRole("dialog", { name: "Edit jot" });
+  await sheet.getByLabel("Jot text").fill("polished thought");
+  await sheet.getByRole("button", { name: /Notes/ }).click();
+  await expectText(page, ".toast", /kept to Notes/);
+  expect(
+    (await page.locator(".jot-bubble").count()) === 0,
+    "jot should leave the stream",
+  );
+  await page.getByRole("button", { name: "Library" }).click();
+  await expectText(page, ".lib-name", /polished thought/);
+  await ctx.close();
+});
+
+await scenario("keep from edit sheet: People jumps to the name step", async () => {
+  const seed = [
+    note({ shelf: "people", title: "Ana", text: "loves tulips", day: todayKey() }),
+    note({ text: "ana mentioned a cabin trip", day: todayKey() }),
+  ];
+  const { ctx, page } = await freshPage(seed);
+  await page.locator(".jot-bubble").click();
+  const sheet = page.getByRole("dialog", { name: "Edit jot" });
+  await sheet.getByRole("button", { name: /People/ }).click();
+  // Straight to "who is this about?", no shelf list in between.
+  await page.waitForSelector(".people-suggest");
+  await page.locator(".people-suggest .chip", { hasText: "Ana" }).click();
+  await page.getByRole("button", { name: "Keep", exact: true }).click();
+  await expectText(page, ".toast", /added to Ana/);
+  await page.getByRole("button", { name: "Library" }).click();
+  await page.locator(".lib-main", { hasText: "Ana" }).click();
+  const body = await page.getByLabel("Note text").inputValue();
+  expect(
+    body === "loves tulips\n\nana mentioned a cabin trip",
+    `unexpected People page body: ${JSON.stringify(body)}`,
+  );
   await ctx.close();
 });
 

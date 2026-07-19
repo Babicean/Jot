@@ -55,6 +55,8 @@ export default function App() {
   const [gearSpin, setGearSpin] = useState(false);
   const [editingJot, setEditingJot] = useState<Note | null>(null);
   const [keepingJot, setKeepingJot] = useState<Note | null>(null);
+  // True when the keep sheet was reached from the edit sheet's People chip.
+  const [keepAskPerson, setKeepAskPerson] = useState(false);
   const [noteMode, setNoteMode] = useState<NoteSheetMode>(null);
   const captureRef = useRef<CaptureBarHandle>(null);
 
@@ -105,10 +107,10 @@ export default function App() {
     );
   };
 
-  const keep = (shelf: LibraryShelf, personName?: string) => {
-    if (!keepingJot) return;
-    const result = keepJot(keepingJot.id, shelf, personName);
-    setKeepingJot(null);
+  const showKeepToast = (
+    shelf: LibraryShelf,
+    result: { label: string; undo: () => void } | null,
+  ) => {
     if (!result) return;
     showToast(
       {
@@ -127,6 +129,36 @@ export default function App() {
       },
       UNDO_MS,
     );
+  };
+
+  const keep = (shelf: LibraryShelf, personName?: string) => {
+    if (!keepingJot) return;
+    const result = keepJot(keepingJot.id, shelf, personName);
+    setKeepingJot(null);
+    setKeepAskPerson(false);
+    showKeepToast(shelf, result);
+  };
+
+  /** Keep from the edit sheet, carrying the sheet's text edits along. */
+  const keepFromEdit = (
+    id: string,
+    shelf: LibraryShelf,
+    text: string,
+  ) => {
+    if (shelf === "people") {
+      // Commit the edit, then ask who it's about.
+      updateNote(id, { text });
+      const jot = editingJot;
+      setEditingJot(null);
+      if (jot) {
+        setKeepingJot({ ...jot, text });
+        setKeepAskPerson(true);
+      }
+      return;
+    }
+    const result = keepJot(id, shelf, "", text);
+    setEditingJot(null);
+    showKeepToast(shelf, result);
   };
 
   return (
@@ -213,6 +245,7 @@ export default function App() {
             expiresAt === undefined ? { text } : { text, expiresAt },
           )
         }
+        onKeep={keepFromEdit}
         onDelete={removeWithUndo}
         onClose={() => setEditingJot(null)}
       />
@@ -220,8 +253,12 @@ export default function App() {
       <KeepSheet
         note={keepingJot}
         people={people}
+        askPersonFirst={keepAskPerson}
         onKeep={keep}
-        onClose={() => setKeepingJot(null)}
+        onClose={() => {
+          setKeepingJot(null);
+          setKeepAskPerson(false);
+        }}
       />
 
       <NoteSheet

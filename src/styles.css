@@ -1123,6 +1123,55 @@ textarea {
   margin-top: 0.0625rem;
 }
 
+.keep-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.keep-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4375rem;
+  padding: 0.6875rem 0.25rem;
+  border-radius: 0.875rem;
+  background: var(--fill-quiet);
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keep-chip:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.keep-chip:active {
+  transform: scale(0.96);
+}
+
+.keep-chip:disabled {
+  color: var(--ink-3);
+  background: var(--fill-quiet);
+  cursor: default;
+}
+
+.keep-chip-icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.keep-chip:disabled .keep-chip-icon {
+  color: var(--ink-3);
+}
+
 .field {
   position: relative;
   display: flex;

@@ -162,9 +162,17 @@ router, no state library, no backend SDK.
   `pkill` exits 144 (run it in its own command); download artifacts
   vanish on context close (`download.saveAs` first).
 
-## Current state — v0.1.0 (code 1)
+## Current state — v0.1.1 (code 2)
 
-Shipped in this release:
+v0.1.1: the edit jot sheet gained a Keep row (Notes/Ideas/People) after
+the owner's first field test showed filing belongs where you tap. Keeps
+from the sheet carry its text edits; People jumps straight to the name
+step (`askPersonFirst` on KeepSheet). The owner floated tags; the call
+for now is that the shelves ARE the tags (no separate tag system, keeps
+the formula calm) — revisit only if he asks again after living with
+sheet-keep.
+
+Shipped in v0.1.0:
 
 - Capture stream with docked input, send fly animation, day headers,
   edit sheet, delete + 5 s undo (hold-to-pause toast).

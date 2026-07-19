@@ -193,16 +193,24 @@ export function useNotes() {
    * to the person's page — creating the page if needed — and retires the jot.
    */
   const keepJot = useCallback(
-    (id: string, shelf: LibraryShelf, personName = ""): KeepResult | null => {
-      const jot = notes.find((n) => n.id === id);
-      if (!jot || jot.shelf !== "stream") return null;
+    (
+      id: string,
+      shelf: LibraryShelf,
+      personName = "",
+      textOverride?: string,
+    ): KeepResult | null => {
+      const found = notes.find((n) => n.id === id);
+      if (!found || found.shelf !== "stream") return null;
       const at = Date.now();
+      // The edit sheet keeps in the same tap as a text edit; carry it along.
+      const jot =
+        textOverride !== undefined ? { ...found, text: textOverride } : found;
 
       if (shelf !== "people") {
         setNotes((prev) =>
           prev.map((n) =>
             n.id === id
-              ? { ...n, shelf, expiresAt: null, updatedAt: at }
+              ? { ...n, text: jot.text, shelf, expiresAt: null, updatedAt: at }
               : n,
           ),
         );

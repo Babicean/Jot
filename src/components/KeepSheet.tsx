@@ -5,6 +5,8 @@ import type { LibraryShelf, Note } from "../types";
 interface Props {
   note: Note | null;
   people: string[];
+  /** Open straight on the "who is this about?" step (from the edit sheet). */
+  askPersonFirst?: boolean;
   onKeep: (shelf: LibraryShelf, personName?: string) => void;
   onClose: () => void;
 }
@@ -13,7 +15,13 @@ interface Props {
  * Choose a shelf for a kept jot. Notes and Ideas keep in one tap; People
  * asks who it's about and appends to their page.
  */
-export default function KeepSheet({ note, people, onKeep, onClose }: Props) {
+export default function KeepSheet({
+  note,
+  people,
+  askPersonFirst = false,
+  onKeep,
+  onClose,
+}: Props) {
   const [askingPerson, setAskingPerson] = useState(false);
   const [name, setName] = useState("");
 
@@ -22,7 +30,7 @@ export default function KeepSheet({ note, people, onKeep, onClose }: Props) {
   if (note !== lastNote) {
     setLastNote(note);
     if (note) {
-      setAskingPerson(false);
+      setAskingPerson(askPersonFirst);
       setName("");
     }
   }
