@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override Capacitor's indigo defaults with Tally's palette. -->
+    <color name="colorPrimary">#2E6BE6</color>
+    <color name="colorPrimaryDark">#2559C9</color>
+    <color name="colorAccent">#2E6BE6</color>
+    <color name="jotBackground">#F5F6F8</color>
+    <color name="jotBackgroundDark">#0C0D10</color>
+</resources>

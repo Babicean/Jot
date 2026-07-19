@@ -1,0 +1,72 @@
+name: Android APK
+
+on:
+  push:
+    branches: ["main", "claude/**"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+# Needed so the release step can create GitHub Releases.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build signed release APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jot-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      - name: Attach APK to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+
+      # Rolling release: every release-branch build refreshes the APK at a
+      # stable URL (…/releases/download/latest/app-release.apk) — no login,
+      # no zip. That URL is the install channel.
+      - name: Update rolling 'latest' release
+        if: github.ref == 'refs/heads/claude/notes-app-v0-1-build-tdd9c4' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Jot — latest build
+          body: |
+            Signed sideload APK from the most recent build. Download
+            app-release.apk below and open it on your phone to install
+            or update — data carries over.
+          files: android/app/build/outputs/apk/release/app-release.apk

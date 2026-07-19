@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Jot</string>
+    <string name="title_activity_main">Jot</string>
+    <string name="package_name">com.babicean.jot</string>
+    <string name="custom_url_scheme">com.babicean.jot</string>
+</resources>
